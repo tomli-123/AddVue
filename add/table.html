@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .red {
+        color: red;
+      }
+      #search {
+        width: 300px;
+        margin: 10px 0;
+      }
+    </style>
+    <link
+      href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.4.1/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .red {
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="container">
+        <input
+          v-model="key"
+          @input="search"
+          v-focus
+          type="text"
+          id="search"
+          class="form-control"
+          placeholder="请输入关键字"
+        />
+        <table class="table table-bordered table-hover">
+          <thead>
+            <tr>
+              <th>编号</th>
+              <th>资产名称</th>
+              <th>价格</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(item,index) in list">
+              <td v-cloak>{{ index }}</td>
+              <td v-cloak>{{ item.name }}</td>
+              <td :class="{ red: item.price > 100 }" v-cloak>
+                {{ item.price | unit1 }}
+              </td>
+              <td>
+                <a href="javascript:;" @click.stop.prevent="del(item.id)"
+                  >删除</a
+                >
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="4" v-cloak>总计：{{desc}}</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <!-- 添加资产 -->
+        <form class="form-inline">
+          <div class="form-group">
+            <div class="input-group">
+              <input
+                v-model.trim="name"
+                type="text"
+                class="form-control"
+                placeholder="资产名称"
+              />
+            </div>
+            &nbsp;&nbsp;
+            <div class="input-group">
+              <input
+                v-model.trim.number="price"
+                type="number"
+                class="form-control"
+                placeholder="资产价格"
+              />
+            </div>
+          </div>
+          &nbsp;&nbsp;
+          <!-- button默认是会提交form表单, 阻止默认行为 -->
+          <button class="btn btn-primary" @click.stop.prevent="add">
+            添加资产
+          </button>
+        </form>
+      </div>
+    </div>
+    <script src="./vue.js"></script>
+    <script src="./axios.js"></script>
+    <script>
+      // 创建vue实例
+      /*
+      1.渲染页面
+      2.数据标红
+      3.删除操作
+      4.添加操作
+      5.搜索框聚焦
+      6.price添加字符
+      7.综合书写
+      */
+      Vue.directive("focus", {
+        inserted(el) {
+          el.focus();
+        },
+      });
+
+      Vue.filter("unit1", (value) => {
+        value = Number(value);
+        return "¥" + value.toFixed(2);
+      });
+
+      const vm = new Vue({
+        el: "#app",
+        data: {
+          name: "",
+          price: "",
+          list: [],
+          key: "",
+        },
+        created() {
+          this.getList();
+        },
+        methods: {
+          getList() {
+            axios.get("http://localhost:3000/list/").then((res) => {
+              console.log("成功啦");
+              this.list = res.data;
+            });
+          },
+
+          del(id) {
+            axios.delete(`http://localhost:3000/list/${id}`).then((res) => {
+              this.getList();
+            });
+            this.list = this.list.filter((item) => item.id !== id);
+          },
+          add() {
+            axios
+              .post(" http://localhost:3000/list", {
+                name: this.name,
+                price: this.price,
+              })
+              .then((res) => {
+                (this.name = ""), (this.price = "");
+                this.getList();
+              });
+          },
+          search() {
+            axios
+              .get(`http://localhost:3000/list?name_like=${this.key}`)
+              .then((res) => {
+                this.list = res.data;
+              });
+          },
+        },
+        computed: {
+          desc() {
+            let temp = 0;
+            this.list.forEach((item) => {
+              temp += item.price;
+            });
+            return temp;
+          },
+          unit() {
+            this.list.forEach((item) => {
+              item.price = "¥" + this.price;
+              return item.price;
+            });
+          },
+          // showList() {
+          //   return this.list.filter((item) => {
+          //     return item.name.includes(this.key);
+          //   });
+          // },
+        },
+      });
+    </script>
+  </body>
+</html>

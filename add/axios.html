@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <!-- 
+        get huo
+        post tian
+        delete shan
+        put xiu
+        patch xiu
+     -->
+    <div id="app">
+      <button @click="add">启动</button>
+    </div>
+    <script src="./vue.js"></script>
+    <script src="axios.js"></script>
+    <script>
+      let vm = new Vue({
+        el: "#app",
+        data: {
+          msg: "我是vue内容",
+        },
+        methods: {
+          del() {
+            axios
+              .patch(`http://localhost:3000/list/${id}`, {
+                name: "祖传三轮车",
+              })
+              .then((res) => {
+                console.log(res.data); // 得到修改的结果
+                console.log("修改成功");
+              });
+          },
+          add() {
+            if (this.name === "") return;
+            if (this.price === "" || this.price <= 0) return;
+            // 发送添加的ajax请求
+            axios
+              .post("http://localhost:3000/list", {
+                name: this.name,
+                price: this.price,
+              })
+              .then((res) => {
+                this.name = "";
+                this.price = "";
+                console.log("成功啦");
+              });
+          },
+        },
+      });
+    </script>
+  </body>
+</html>
